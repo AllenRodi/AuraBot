@@ -1,6 +1,6 @@
 # AuraBot: Discord Mood Tracker 🌈
 
-AuraBot is a **Discord-based mood and habit tracker** designed to support individuals with ADHD and anxiety by offering a structured yet engaging way to log and monitor emotional well-being and daily habits. AuraBot uniquely leverages Discord’s platform to provide a supportive, interactive environment tailored to the specific needs of its users.
+AuraBot is a **Discord-based mood and habit tracker** designed to support individuals with ADHD and anxiety by offering a structured yet engaging way to log and monitor emotional well-being and daily habits. It uniquely uses Discord’s platform to provide a supportive, interactive environment tailored to its users' specific needs.
 
 ## Project Overview
 
@@ -15,7 +15,7 @@ AuraBot’s mission is to provide a **free, accessible tool** for individuals wi
 
 ### Why AuraBot?
 
-Many mood-tracking apps on the market aren’t optimized for ADHD and anxiety needs, particularly on interactive platforms like Discord, where community and privacy can coexist. AuraBot aims to fill this gap by prioritizing:
+Many mood-tracking apps on the market aren’t optimized for ADHD and anxiety needs, particularly on interactive platforms like Discord, where community and privacy can coexist. AuraBot aims to fill this gap by prioritizing the following:
 
 - **Accessibility**: AuraBot is designed to be free and easy to use, without the subscriptions or therapist access codes often required by other apps.
 - **Privacy & Security 🔒**: User data is stored securely, with features like encryption and screen-reader compatibility to ensure inclusivity and protection.
