@@ -21,7 +21,7 @@ class CreateProfile(commands.Cog):
             raise ValueError("MongoDB connection string is not set in .env")
 
         self.cluster = MongoClient(mongo_url)
-        self.db = self.cluster["AuraBotDB"]
+        self.db = self.cluster["AuraBot-Cluster"]
         self.collection = self.db["user_profiles"]
 
     @discord.app_commands.command(name="createprofile", description="Create your user profile")
