@@ -1,5 +1,6 @@
 # connections
 mongo.py
-env.py
+
 __pycache__/
 *.pyc
+.env
