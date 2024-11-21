@@ -4,7 +4,7 @@ from discord.ext import commands
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
-from config import GUILD_ID  # Import your guild ID
+from config import GUILD_ID
 
 # Load environment variables
 load_dotenv()
@@ -20,9 +20,21 @@ class CreateProfile(commands.Cog):
         if not mongo_url:
             raise ValueError("MongoDB connection string is not set in .env")
 
+        # Establish MongoDB connection
         self.cluster = MongoClient(mongo_url)
-        self.db = self.cluster["AuraBot-Cluster"]
+        self.db = self.cluster["AuraBotDB"]  # Replace with your database name
         self.collection = self.db["user_profiles"]
+
+        # Debugging: Check MongoDB connection
+        print("Connected to MongoDB!")
+        print("Existing collections:", self.db.list_collection_names())
+
+    async def cog_load(self):
+        """Register commands when the cog is loaded."""
+        guild = discord.Object(id=GUILD_ID)  # Ensure GUILD_ID is correct
+        self.aurabot.tree.add_command(self.create_profile, guild=guild)
+        self.aurabot.tree.add_command(self.view_profile, guild=guild)
+        print("Registered /createprofile and /viewprofile commands.")
 
     @discord.app_commands.command(name="createprofile", description="Create your user profile")
     async def create_profile(self, interaction: discord.Interaction):
