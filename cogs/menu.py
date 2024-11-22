@@ -15,7 +15,10 @@ class Menu(commands.Cog):
             color=discord.Color.blue()
         )
         embed.add_field(name="/menu", value="Displays this menu of commands.", inline=False)
-
+        embed.add_field(name="/createprofile", value="Creates a user profile.", inline=False)
+        embed.add_field(name="/viewprofile", value="Displays a user's profile.", inline=False)
+        embed.add_field(name="/habittracking", value="Track a user's habits.", inline=False)
+        embed.add_field(name="/moodlogging", value="Logs a user's mood.", inline=False)
         await interaction.response.send_message(embed=embed)
 
     async def cog_load(self):
