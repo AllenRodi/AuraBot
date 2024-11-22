@@ -33,8 +33,6 @@ class CreateProfile(commands.Cog):
         """Register commands when the cog is loaded."""
         guild = discord.Object(id=GUILD_ID)  # Ensure GUILD_ID is correct
         self.aurabot.tree.add_command(self.create_profile, guild=guild)
-        self.aurabot.tree.add_command(self.view_profile, guild=guild)
-        print("Registered /createprofile and /viewprofile commands.")
 
     @discord.app_commands.command(name="createprofile", description="Create your user profile")
     async def create_profile(self, interaction: discord.Interaction):
@@ -64,17 +62,6 @@ class CreateProfile(commands.Cog):
         else:
             self.collection.insert_one({"_id": user_id, "bio": bio})
             await interaction.followup.send("Your profile has been created!")
-
-    @discord.app_commands.command(name="viewprofile", description="View your profile bio")
-    async def view_profile(self, interaction: discord.Interaction):
-        """Handles the /viewprofile command."""
-        user_id = interaction.user.id
-        profile = self.collection.find_one({"_id": user_id})
-
-        if profile:
-            await interaction.response.send_message(f"Here is your profile bio:\n{profile['bio']}")
-        else:
-            await interaction.response.send_message("You don't have a profile yet! Use /createprofile to create one.")
 
 # Required setup function
 async def setup(aurabot):
