@@ -14,7 +14,7 @@ class MoodLoggingMenu(commands.Cog):
         embed = discord.Embed(
             title="Mood Logging Menu",
             description="Here are the commands you can use for mood logging:",
-            color=discord.Color.blue()
+            color=discord.Color.yellow()
         )
         embed.add_field(name="/logmood", value="Log your mood for the day.", inline=False)
         embed.add_field(name="/viewmoods", value="View your logged moods.", inline=False)
