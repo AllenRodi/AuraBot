@@ -39,10 +39,6 @@ class MoodLogging(commands.Cog):
         #Start the reminder task loop
         self.send_reminders.start()
 
-        # Debugging: Check MongoDB connection, temp replaced by raise ConnectionError(f"Failed to connect to MongoDB: {e}")
-        # print("Connected to MongoDB for mood logging!")
-        # print("Existing collections:", self.db.list_collection_names())
-
     async def cog_load(self):
         """Register commands when the cog is loaded."""
         guild = discord.Object(id=GUILD_ID)  # Ensure GUILD_ID is correct
