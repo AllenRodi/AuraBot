@@ -1,4 +1,3 @@
-import asyncio
 import discord
 from discord.ext import commands
 from pymongo import MongoClient
@@ -26,7 +25,7 @@ class CreateProfile(commands.Cog):
         self.collection = self.db["user_profiles"]
 
         # Debugging: Check MongoDB connection
-        print("Connected to MongoDB!")
+        print("Connected to MongoDB for CreateProfile!")
         print("Existing collections:", self.db.list_collection_names())
 
     async def cog_load(self):
@@ -34,34 +33,23 @@ class CreateProfile(commands.Cog):
         guild = discord.Object(id=GUILD_ID)  # Ensure GUILD_ID is correct
         self.aurabot.tree.add_command(self.create_profile, guild=guild)
 
-    @discord.app_commands.command(name="createprofile", description="Create your user profile")
+    @discord.app_commands.command(name="createprofile", description="Create your profile using your Discord username.")
     async def create_profile(self, interaction: discord.Interaction):
         """Handles the /createprofile command."""
-        await interaction.response.send_message("Please provide your profile bio:")
-
-        # Wait for the user's response
-        try:
-            user_message = await self.aurabot.wait_for(
-                "message",
-                check=lambda m: m.author == interaction.user and m.channel == interaction.channel,
-                timeout=600  # 10 minutes timeout
-            )
-        except asyncio.TimeoutError:
-            await interaction.followup.send("You took too long to respond. Try again later.")
-            return
-
-        # Store the profile in MongoDB
         user_id = interaction.user.id
-        bio = user_message.content
+        username = interaction.user.display_name  # Get the user's Discord username
 
         # Check if the user already has a profile
         existing_profile = self.collection.find_one({"_id": user_id})
+
         if existing_profile:
-            self.collection.update_one({"_id": user_id}, {"$set": {"bio": bio}})
-            await interaction.followup.send("Your profile bio has been updated.")
+            # If profile exists, show the existing username
+            existing_username = existing_profile.get("username", "No username set.")
+            await interaction.response.send_message(f"You already have a profile with the username: **{existing_username}**")
         else:
-            self.collection.insert_one({"_id": user_id, "bio": bio})
-            await interaction.followup.send("Your profile has been created!")
+            # Create a new profile with the username
+            self.collection.insert_one({"_id": user_id, "username": username})
+            await interaction.response.send_message(f"Your profile has been created with your username: **{username}**")
 
 # Required setup function
 async def setup(aurabot):

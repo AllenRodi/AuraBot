@@ -29,14 +29,15 @@ class ViewProfile(commands.Cog):
         guild = discord.Object(id=GUILD_ID)  # Ensure GUILD_ID is correct
         self.aurabot.tree.add_command(self.view_profile, guild=guild)
 
-    @discord.app_commands.command(name="viewprofile", description="View your profile bio")
+    @discord.app_commands.command(name="viewprofile", description="View your profile username")
     async def view_profile(self, interaction: discord.Interaction):
         """Handles the /viewprofile command."""
         user_id = interaction.user.id
         profile = self.collection.find_one({"_id": user_id})
 
         if profile:
-            await interaction.response.send_message(f"Here is your profile bio:\n{profile['bio']}")
+            username = profile.get("username", "No username set.")
+            await interaction.response.send_message(f"Your username: **{username}**")
         else:
             await interaction.response.send_message("You don't have a profile yet! Use /createprofile to create one.")
 
