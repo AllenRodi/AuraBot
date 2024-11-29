@@ -64,7 +64,7 @@ class MoodLogging(commands.Cog):
                 {"$push": {"moods": {"mood": mood, "timestamp": datetime.now(timezone.utc)}}},
                 upsert=True
             )
-            await interaction.followup.send(f"Your mood '{mood} has been logged!")
+            await interaction.followup.send(f"Your mood: {mood} has been logged!")
         except Exception as e:
             logging.error(f"Error logging mood: {e}")
             await interaction.followup.send("Failed to log your mood. Please try again.")
