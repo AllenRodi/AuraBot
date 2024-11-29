@@ -111,6 +111,12 @@ class MoodLogging(commands.Cog):
                  {"$set": {"time": time, "enabled": True}},
                  upsert=True
             )
+
+            await interaction.response.send_message(
+            f"Reminder set for **{time} UTC**. Please note that the time is in UTC.\n"
+            "If you're unsure about your local time in UTC, you can use [this converter](https://www.timeanddate.com/worldclock/converter.html) to calculate it."
+        )
+            
             await interaction.response.send_message(f"Reminder set for {time}. I'll DM you daily to log your mood!")
         except ValueError:
             await interaction.response.send_message("Invalid time format! Use HH:MM in 24-hour format.")
