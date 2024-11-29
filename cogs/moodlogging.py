@@ -50,7 +50,7 @@ class MoodLogging(commands.Cog):
         self.aurabot.tree.add_command(self.view_moods, guild=guild)
         self.aurabot.tree.add_command(self.set_reminder, guild=guild)
         self.aurabot.tree.add_command(self.stop_reminder, guild=guild)
-
+        logging.info("Commands registered: logmood, viewmoods, setmoodreminder, stopmoodreminder")
 
 
     @discord.app_commands.command(name="logmood", description="Log your mood for the day.")
