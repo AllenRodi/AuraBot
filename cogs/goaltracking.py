@@ -24,55 +24,37 @@ class GoalTracking(commands.Cog):
         self.db = self.cluster["AuraBotDB"]
         self.collection = self.db["goal_tracking"]
 
-        # Debugging: Check MongoDB connection
-        print("Connected to MongoDB for goal tracking!")
-        print("Existing collections:", self.db.list_collection_names())
+        print("GoalTracking cog loaded and connected to MongoDB!")
 
     async def cog_load(self):
-        """Register commands when the cog is loaded."""
-        guild = discord.Object(id=GUILD_ID)  # Ensure GUILD_ID is correct
+        guild = discord.Object(id=GUILD_ID)
         self.aurabot.tree.add_command(self.add_goal, guild=guild)
         self.aurabot.tree.add_command(self.view_goals, guild=guild)
-        self.aurabot.tree.add_command(self.clear_goals, guild=guild)
 
     @discord.app_commands.command(name="addgoal", description="Add a goal to track.")
-    async def add_goal(self, interaction: discord.Interaction, goal: str):
-        """Handles /addgoal command."""
+    async def add_goal(self, interaction: discord.Interaction, goal: str, target: int, unit: str):
+        print(f"/addgoal invoked with goal={goal}, target={target}, unit={unit}")
         user_id = interaction.user.id
-        user_data = self.collection.find_one({"_id": user_id})
+        self.collection.update_one(
+            {"_id": user_id},
+            {"$addToSet": {"goals": {"goal": goal, "target": target, "unit": unit, "progress": 0}}},
+            upsert=True
+        )
+        await interaction.response.send_message(f"Goal `{goal}` with target `{target} {unit}` added.")
 
-        if user_data:
-            self.collection.update_one({"_id": user_id}, {"$addToSet": {"goals": goal}})
-            await interaction.response.send_message(f"Goal `{goal}` added to your tracking list.")
-        else:
-            self.collection.insert_one({"_id": user_id, "goals": [goal]})
-            await interaction.response.send_message(f"Goal `{goal}` added to a new tracking list.")
-
-    @discord.app_commands.command(name="viewgoals", description="View your tracked goals.")
+    @discord.app_commands.command(name="viewgoals", description="View your goals.")
     async def view_goals(self, interaction: discord.Interaction):
-        """Handles /viewgoals command."""
+        print("/viewgoals invoked")
         user_id = interaction.user.id
         user_data = self.collection.find_one({"_id": user_id})
+        if not user_data or "goals" not in user_data:
+            await interaction.response.send_message("You don't have any goals yet.")
+            return
 
-        if user_data and "goals" in user_data:
-            goals = user_data["goals"]
-            if goals:
-                await interaction.response.send_message("Your tracked goals:\n- " + "\n- ".join(goals))
-            else:
-                await interaction.response.send_message("You don't have any tracked goals yet.")
-        else:
-            await interaction.response.send_message("You don't have any tracked goals yet.")
-
-    @discord.app_commands.command(name="cleargoals", description="Clear all your tracked goals.")
-    async def clear_goals(self, interaction: discord.Interaction):
-        """Handles /cleargoals command."""
-        user_id = interaction.user.id
-        result = self.collection.delete_one({"_id": user_id})
-
-        if result.deleted_count > 0:
-            await interaction.response.send_message("All your tracked goals have been cleared.")
-        else:
-            await interaction.response.send_message("You have no goals to clear.")
+        embed = discord.Embed(title="Your Goals", color=discord.Color.blue())
+        for g in user_data["goals"]:
+            embed.add_field(name=g["goal"], value=f"Target: {g['target']} {g['unit']} | Progress: {g['progress']}", inline=False)
+        await interaction.response.send_message(embed=embed)
 
 # Required setup function
 async def setup(aurabot):

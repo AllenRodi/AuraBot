@@ -1,3 +1,5 @@
+import asyncio
+from datetime import datetime
 import discord
 from discord.ext import commands
 from pymongo import MongoClient
@@ -9,7 +11,7 @@ from config import GUILD_ID
 load_dotenv()
 
 class HabitTracking(commands.Cog):
-    """Cog for tracking user habits."""
+    """Cog for tracking and logging user habits with reminders."""
 
     def __init__(self, aurabot):
         self.aurabot = aurabot
@@ -19,60 +21,131 @@ class HabitTracking(commands.Cog):
         if not mongo_url:
             raise ValueError("MongoDB connection string is not set in .env")
 
-        # Establish MongoDB connection
         self.cluster = MongoClient(mongo_url)
         self.db = self.cluster["AuraBotDB"]
         self.collection = self.db["habit_tracking"]
 
-        # Debugging: Check MongoDB connection
         print("Connected to MongoDB for habit tracking!")
-        print("Existing collections:", self.db.list_collection_names())
+
+        # Start the reminder task
+        self.reminder_task = self.aurabot.loop.create_task(self.send_reminders())
+
+    async def cog_unload(self):
+        """Stop the reminder task when the cog is unloaded."""
+        self.reminder_task.cancel()
 
     async def cog_load(self):
         """Register commands when the cog is loaded."""
-        guild = discord.Object(id=GUILD_ID)  # Ensure GUILD_ID is correct
+        guild = discord.Object(id=GUILD_ID)
+        print(f"Registering commands in HabitTracking for guild {GUILD_ID}...")
         self.aurabot.tree.add_command(self.add_habit, guild=guild)
+        self.aurabot.tree.add_command(self.log_habit, guild=guild)
         self.aurabot.tree.add_command(self.view_habits, guild=guild)
-        self.aurabot.tree.add_command(self.clear_habits, guild=guild)
+        self.aurabot.tree.add_command(self.clear_habit, guild=guild)
+
+    async def send_reminders(self):
+        """Background task to send reminders for unlogged habits."""
+        await self.aurabot.wait_until_ready()
+        while not self.aurabot.is_closed():
+            now = datetime.utcnow()
+            users = self.collection.find({"habits.reminder_time": {"$exists": True}})
+
+            for user in users:
+                for habit in user["habits"]:
+                    reminder_time = datetime.strptime(habit["reminder_time"], "%H:%M").time()
+                    if now.time() >= reminder_time and now.strftime("%Y-%m-%d") not in habit["logs"]:
+                        user_obj = await self.aurabot.fetch_user(user["_id"])
+                        try:
+                            await user_obj.send(f"Reminder: Log your habit `{habit['habit']}` for today!")
+                        except discord.Forbidden:
+                            print(f"Failed to send reminder to user {user['_id']} (DMs disabled).")
+            await asyncio.sleep(60)  # Check every minute
 
     @discord.app_commands.command(name="addhabit", description="Add a habit to track.")
-    async def add_habit(self, interaction: discord.Interaction, habit: str):
-        """Handles /addhabit command."""
+    async def add_habit(self, interaction: discord.Interaction, habit: str, reminder_time: str):
+        """Add a new habit with a daily reminder time."""
+        print(f"add_habit triggered with habit={habit}, reminder_time={reminder_time}")
+
+        # Validate reminder_time format
+        try:
+            datetime.strptime(reminder_time, "%H:%M")
+        except ValueError:
+            await interaction.response.send_message(
+                "Invalid reminder time format. Use HH:MM (24-hour clock).", ephemeral=True
+            )
+            return
+
+        user_id = interaction.user.id
+        habit_data = {"habit": habit, "logs": [], "reminder_time": reminder_time}
+
+        try:
+            self.collection.update_one({"_id": user_id}, {"$addToSet": {"habits": habit_data}}, upsert=True)
+            await interaction.response.send_message(f"Habit `{habit}` added with reminder at {reminder_time}.")
+        except Exception as e:
+            print(f"Database error: {e}")
+            await interaction.response.send_message("An error occurred while saving your habit. Please try again.")
+
+    @discord.app_commands.command(name="loghabit", description="Log your habit for today.")
+    async def log_habit(self, interaction: discord.Interaction, habit: str):
+        """Log a habit for the current day."""
+        print(f"log_habit triggered with habit={habit}")
+
+        today = datetime.utcnow().strftime("%Y-%m-%d")
         user_id = interaction.user.id
         user_data = self.collection.find_one({"_id": user_id})
 
-        if user_data:
-            self.collection.update_one({"_id": user_id}, {"$addToSet": {"habits": habit}})
-            await interaction.response.send_message(f"Habit `{habit}` added to your tracking list.")
-        else:
-            self.collection.insert_one({"_id": user_id, "habits": [habit]})
-            await interaction.response.send_message(f"Habit `{habit}` added to a new tracking list.")
+        if not user_data or "habits" not in user_data:
+            await interaction.response.send_message("You don't have any tracked habits.")
+            return
+
+        for h in user_data["habits"]:
+            if isinstance(h, dict) and h.get("habit", "").lower() == habit.lower():  # Validate and compare
+                if today in h.get("logs", []):
+                    await interaction.response.send_message(f"Habit `{habit}` already logged today.")
+                    return
+                h.setdefault("logs", []).append(today)  # Ensure logs exists as a list
+                self.collection.update_one({"_id": user_id}, {"$set": {"habits": user_data["habits"]}})
+                await interaction.response.send_message(f"Habit `{habit}` logged for today.")
+                return
+
+        await interaction.response.send_message(f"Habit `{habit}` not found.")
 
     @discord.app_commands.command(name="viewhabits", description="View your tracked habits.")
     async def view_habits(self, interaction: discord.Interaction):
-        """Handles /viewhabits command."""
+        """View the list of habits and their log status."""
+        print("view_habits triggered")
+
         user_id = interaction.user.id
         user_data = self.collection.find_one({"_id": user_id})
 
-        if user_data and "habits" in user_data:
-            habits = user_data["habits"]
-            if habits:
-                await interaction.response.send_message("Your tracked habits:\n- " + "\n- ".join(habits))
-            else:
-                await interaction.response.send_message("You don't have any tracked habits yet.")
-        else:
-            await interaction.response.send_message("You don't have any tracked habits yet.")
+        if not user_data or "habits" not in user_data:
+            await interaction.response.send_message("You don't have any tracked habits.")
+            return
 
-    @discord.app_commands.command(name="clearhabits", description="Clear all your tracked habits.")
-    async def clear_habits(self, interaction: discord.Interaction):
-        """Handles /clearhabits command."""
+        embed = discord.Embed(title="Your Habits", color=discord.Color.green())
+        for habit in user_data["habits"]:
+            logs = len(habit["logs"])
+            embed.add_field(
+                name=habit["habit"],
+                value=f"Reminder: {habit['reminder_time']} | Days Logged: {logs}",
+                inline=False
+            )
+        await interaction.response.send_message(embed=embed)
+
+    @discord.app_commands.command(name="clearhabit", description="Clear all your tracked habits.")
+    async def clear_habit(self, interaction: discord.Interaction):
+        """Clear all habits for the user who invoked the command."""
         user_id = interaction.user.id
-        result = self.collection.delete_one({"_id": user_id})
 
-        if result.deleted_count > 0:
-            await interaction.response.send_message("All your tracked habits have been cleared.")
-        else:
-            await interaction.response.send_message("You have no habits to clear.")
+        try:
+            result = self.collection.update_one({"_id": user_id}, {"$set": {"habits": []}})
+            if result.matched_count > 0:
+                await interaction.response.send_message("All your tracked habits have been cleared.")
+            else:
+                await interaction.response.send_message("You don't have any tracked habits to clear.")
+        except Exception as e:
+            print(f"Error clearing habits for user {user_id}: {e}")
+            await interaction.response.send_message("An error occurred while clearing your habits.")
 
 # Required setup function
 async def setup(aurabot):
