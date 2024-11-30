@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime
 import discord
+from discord.ui import View, Select
 from discord.ext import commands
 from pymongo import MongoClient
 from dotenv import load_dotenv
@@ -11,7 +12,7 @@ from config import GUILD_ID
 load_dotenv()
 
 class HabitTracking(commands.Cog):
-    """Cog for tracking and logging user habits with reminders."""
+    """Cog for tracking and logging user habits with optional reminders."""
 
     def __init__(self, aurabot):
         self.aurabot = aurabot
@@ -44,7 +45,7 @@ class HabitTracking(commands.Cog):
         self.aurabot.tree.add_command(self.clear_habit, guild=guild)
 
     async def send_reminders(self):
-        """Background task to send reminders for unlogged habits."""
+        """Background task to send reminders for unlogged habits with reminders."""
         await self.aurabot.wait_until_ready()
         while not self.aurabot.is_closed():
             now = datetime.utcnow()
@@ -62,25 +63,40 @@ class HabitTracking(commands.Cog):
             await asyncio.sleep(60)  # Check every minute
 
     @discord.app_commands.command(name="addhabit", description="Add a habit to track.")
-    async def add_habit(self, interaction: discord.Interaction, habit: str, reminder_time: str):
-        """Add a new habit with a daily reminder time."""
+    async def add_habit(self, interaction: discord.Interaction, habit: str, reminder_time: str = None):
+        """
+        Add a new habit to track with an optional daily reminder time.
+        If `reminder_time` is not provided, no reminders will be set for this habit.
+        """
         print(f"add_habit triggered with habit={habit}, reminder_time={reminder_time}")
 
-        # Validate reminder_time format
-        try:
-            datetime.strptime(reminder_time, "%H:%M")
-        except ValueError:
-            await interaction.response.send_message(
-                "Invalid reminder time format. Use HH:MM (24-hour clock).", ephemeral=True
-            )
-            return
+        # Validate reminder_time format if provided
+        if reminder_time:
+            try:
+                datetime.strptime(reminder_time, "%H:%M")
+            except ValueError:
+                await interaction.response.send_message(
+                    "Invalid reminder time format. Use HH:MM (24-hour clock).", ephemeral=True
+                )
+                return
 
         user_id = interaction.user.id
-        habit_data = {"habit": habit, "logs": [], "reminder_time": reminder_time}
+
+        # Create the habit data
+        habit_data = {
+            "habit": habit,
+            "logs": []
+        }
+        if reminder_time:
+            habit_data["reminder_time"] = reminder_time
 
         try:
+            # Add the habit to the database
             self.collection.update_one({"_id": user_id}, {"$addToSet": {"habits": habit_data}}, upsert=True)
-            await interaction.response.send_message(f"Habit `{habit}` added with reminder at {reminder_time}.")
+            if reminder_time:
+                await interaction.response.send_message(f"Habit `{habit}` added with reminder at {reminder_time}.")
+            else:
+                await interaction.response.send_message(f"Habit `{habit}` added without a reminder.")
         except Exception as e:
             print(f"Database error: {e}")
             await interaction.response.send_message("An error occurred while saving your habit. Please try again.")
@@ -125,9 +141,10 @@ class HabitTracking(commands.Cog):
         embed = discord.Embed(title="Your Habits", color=discord.Color.green())
         for habit in user_data["habits"]:
             logs = len(habit["logs"])
+            reminder_time = habit.get("reminder_time", "No reminder")  # Use .get() to avoid KeyError
             embed.add_field(
                 name=habit["habit"],
-                value=f"Reminder: {habit['reminder_time']} | Days Logged: {logs}",
+                value=f"Reminder: {reminder_time} | Days Logged: {logs}",
                 inline=False
             )
         await interaction.response.send_message(embed=embed)
