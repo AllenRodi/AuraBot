@@ -16,9 +16,10 @@ class HabitTrackingMenu(commands.Cog):
             description="Here are the commands you can use for habit tracking:",
             color=discord.Color.green()
         )
-        embed.add_field(name="/addhabit", value="Add a habit to track.", inline=False)
-        embed.add_field(name="/viewhabits", value="View your tracked habits.", inline=False)
-        embed.add_field(name="/clearhabits", value="Clear all your tracked habits.", inline=False)
+        embed.add_field(name="/addhabit", value="Add a habit to track. The input format is habit: text, reminder_time: HH:MM (24-hour clock).", inline=False)
+        embed.add_field(name="/loghabit", value="Log your habit for the day. The input format is the same string that you inputted in /addhabit.", inline=False)
+        embed.add_field(name="/viewhabits", value="View your tracked habits. No input required.", inline=False)
+        embed.add_field(name="/clearhabits", value="Clear all your tracked habits. No input required.", inline=False)
         await interaction.response.send_message(embed=embed)
 
     async def cog_load(self):
