@@ -29,7 +29,7 @@ class ViewProfile(commands.Cog):
         guild = discord.Object(id=GUILD_ID)  # Ensure GUILD_ID is correct
         self.aurabot.tree.add_command(self.view_profile, guild=guild)
 
-    @discord.app_commands.command(name="viewprofile", description="View your profile username")
+    @discord.app_commands.command(name="viewprofile", description="View your profile")
     async def view_profile(self, interaction: discord.Interaction):
         """Handles the /viewprofile command."""
         user_id = interaction.user.id
@@ -37,9 +37,16 @@ class ViewProfile(commands.Cog):
 
         if profile:
             username = profile.get("username", "No username set.")
-            await interaction.response.send_message(f"Your username: **{username}**")
+            timezone = profile.get("timezone", "No timezone set.")
+            await interaction.response.send_message(
+                f"**Your Profile**\n"
+                f"- Username: **{username}**\n"
+                f"- Timezone: **{timezone}**"
+            )
         else:
-            await interaction.response.send_message("You don't have a profile yet! Use /createprofile to create one.")
+            await interaction.response.send_message(
+                "You don't have a profile yet! Use /createprofile to create one."
+            )
 
 # Required setup function
 async def setup(aurabot):
