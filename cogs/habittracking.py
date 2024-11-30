@@ -102,29 +102,67 @@ class HabitTracking(commands.Cog):
             await interaction.response.send_message("An error occurred while saving your habit. Please try again.")
 
     @discord.app_commands.command(name="loghabit", description="Log your habit for today.")
-    async def log_habit(self, interaction: discord.Interaction, habit: str):
-        """Log a habit for the current day."""
-        print(f"log_habit triggered with habit={habit}")
+    async def log_habit(self, interaction: discord.Interaction):
+        """Log a habit for the current day using a dropdown menu."""
+        print("log_habit triggered")
 
-        today = datetime.utcnow().strftime("%Y-%m-%d")
         user_id = interaction.user.id
         user_data = self.collection.find_one({"_id": user_id})
 
-        if not user_data or "habits" not in user_data:
-            await interaction.response.send_message("You don't have any tracked habits.")
+        if not user_data or "habits" not in user_data or len(user_data["habits"]) == 0:
+            await interaction.response.send_message("You don't have any tracked habits.", ephemeral=True)
             return
 
-        for h in user_data["habits"]:
-            if isinstance(h, dict) and h.get("habit", "").lower() == habit.lower():  # Validate and compare
-                if today in h.get("logs", []):
-                    await interaction.response.send_message(f"Habit `{habit}` already logged today.")
-                    return
-                h.setdefault("logs", []).append(today)  # Ensure logs exists as a list
-                self.collection.update_one({"_id": user_id}, {"$set": {"habits": user_data["habits"]}})
-                await interaction.response.send_message(f"Habit `{habit}` logged for today.")
-                return
+        # Extract habits for dropdown
+        habit_options = [
+            discord.SelectOption(label=habit["habit"], description="Click to log this habit")
+            for habit in user_data["habits"]
+        ]
 
-        await interaction.response.send_message(f"Habit `{habit}` not found.")
+        # Define the dropdown menu
+        class HabitSelectView(View):
+            def __init__(self, collection, user_data, user_id):
+                super().__init__()
+                self.collection = collection
+                self.user_data = user_data
+                self.user_id = user_id
+                self.select = Select(
+                    placeholder="Select a habit to log...",
+                    options=habit_options,
+                    custom_id="habit_select"
+                )
+                self.select.callback = self.select_callback  # Set callback for the select
+                self.add_item(self.select)
+
+            async def select_callback(self, select_interaction: discord.Interaction):
+                selected_habit = self.select.values[0]  # Get the selected habit
+                today = datetime.utcnow().strftime("%Y-%m-%d")
+
+                # Update the database
+                for habit in self.user_data["habits"]:
+                    if habit["habit"] == selected_habit:
+                        if today in habit.get("logs", []):
+                            await select_interaction.response.send_message(
+                                f"Habit `{selected_habit}` already logged today.", ephemeral=True
+                            )
+                            return
+                        habit.setdefault("logs", []).append(today)
+                        self.collection.update_one(
+                            {"_id": self.user_id}, {"$set": {"habits": self.user_data["habits"]}}
+                        )
+                        await select_interaction.response.send_message(
+                            f"Habit `{selected_habit}` logged for today.", ephemeral=True
+                        )
+                        return
+
+                # If the habit isn't found (shouldn't happen)
+                await select_interaction.response.send_message(
+                    f"An error occurred while logging the habit `{selected_habit}`.", ephemeral=True
+                )
+
+        # Show the dropdown menu to the user
+        view = HabitSelectView(self.collection, user_data, user_id)
+        await interaction.response.send_message("Select a habit to log:", view=view, ephemeral=True)
 
     @discord.app_commands.command(name="viewhabits", description="View your tracked habits.")
     async def view_habits(self, interaction: discord.Interaction):
