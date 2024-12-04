@@ -19,6 +19,7 @@ class Menu(commands.Cog):
         embed.add_field(name="/viewprofile", value="Displays a user's profile.", inline=False)
         embed.add_field(name="/habittracking", value="Displays list of habit tracking commands", inline=False)
         embed.add_field(name="/moodlogging", value="Displays list of mood logging commands", inline=False)
+        embed.add_field(name="/goaltracking", value="Displays list of goal tracking commands.", inline=False)
         await interaction.response.send_message(embed=embed)
 
     async def cog_load(self):
