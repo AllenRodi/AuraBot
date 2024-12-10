@@ -1,44 +1,106 @@
 # AuraBot: Discord Mood Tracker 🌈
 
-AuraBot is a **Discord-based mood and habit tracker** designed to support individuals with ADHD and anxiety by offering a structured yet engaging way to log and monitor emotional well-being and daily habits. It uniquely uses Discord’s platform to provide a supportive, interactive environment tailored to its users' specific needs.
-
-## Project Overview
-
-AuraBot’s mission is to provide a **free, accessible tool** for individuals with ADHD and anxiety to track moods, manage habits, and receive supportive reminders. Unlike traditional mood trackers, AuraBot integrates seamlessly into Discord, combining personal tracking with community support.
-
-### Key Features 💡
-
-- **Mood & Habit Tracking**: AuraBot allows users to log their emotions, stressors, sleep duration, and medication intake. Users can reflect on and track daily patterns that impact mental well-being.
-- **Custom Notifications**: Users can set reminders for tasks, medication, or sleep routines, offering structured support and encouraging positive habit formation.
-- **Progress Visualization**: AuraBot provides users with visual summaries of their mood and habit data, enabling them to identify trends and celebrate achievements.
-- **Rewards for Engagement 🎉**: To promote consistency, users receive small rewards for engaging with the bot, fostering motivation and routine.
-
-### Why AuraBot?
-
-Many mood-tracking apps on the market aren’t optimized for ADHD and anxiety needs, particularly on interactive platforms like Discord, where community and privacy can coexist. AuraBot aims to fill this gap by prioritizing the following:
-
-- **Accessibility**: AuraBot is designed to be free and easy to use, without the subscriptions or therapist access codes often required by other apps.
-- **Privacy & Security 🔒**: User data is stored securely, with features like encryption and screen-reader compatibility to ensure inclusivity and protection.
-- **Supportive Environment**: Discord’s community-focused platform allows for a balance between personal tracking and social connection, giving users an option to join supportive communities if they choose.
-
-## Technical Specifications 🛠️
-
-- **Languages**: Developed in Python
-- **Platforms**: AuraBot is built using Discord’s Developer Portal, with code developed and maintained on VS Code and GitHub. MongoDB is used as the database. 
-- **Accessibility Enhancements**: AuraBot is screen-reader compatible and includes text-to-speech support where needed, ensuring that it’s accessible to all users.
-
-### Current Development Status 📈
-
-- **Core Features**: Mood and habit logging are functional, allowing users to interact meaningfully with AuraBot.
-- **Notification System**: Custom notifications are being developed to enable reminders tailored to individual routines.
-- **Data Security**: Ensuring encryption and secure data handling to protect user information.
-
-## Project Timeline 📅
-
-- **Phase 1**: Research and initial development of core bot functionalities.
-- **Phase 2**: Testing and refining mood logging and habit tracking, implementing the notification system, and conducting accessibility testing.
-- **Final Phase**: Completing and polishing all features, finalizing security protocols, and preparing AuraBot for launch.
+AuraBot is a **Discord-based mood, habit, and goal tracker** designed to support individuals with ADHD, anxiety, and similar mental health challenges. It provides a structured yet engaging way to log and monitor emotions, daily habits, and progress toward goals. AuraBot uses Discord's platform to create a supportive, interactive environment tailored to users' needs.
 
 ---
 
-AuraBot is more than a mood tracker; it’s a supportive tool designed to enhance emotional and mental well-being by integrating into daily life through the accessible, community-friendly Discord platform.
+## Project Overview
+
+AuraBot's mission is to provide a **free and accessible tool** for tracking moods, building habits, and setting goals. Unlike traditional trackers, AuraBot seamlessly integrates into Discord, offering personal tracking with optional community support.
+
+---
+
+### Key Features 💡
+
+- **Mood Tracking**:
+  Log emotions, stress levels, sleep duration, and medication intake. Reflect on patterns that affect your well-being.
+  - **Commands**:
+    - `/logmood`: Record your mood for the day.
+    - `/viewmoods`: View your logged moods over time.
+    - `/setmoodreminder`: Set daily mood logging reminders.
+    - `/stopmoodreminder`: Turn off mood reminders.
+
+- **Habit Tracking**:
+  Track daily routines and positive habits, with reminders to stay on top of them.
+  - **Commands**:
+    - `/addhabit`: Add a habit to track with a specific reminder time.
+    - `/loghabit`: Log your progress on tracked habits using a drop-down menu.
+    - `/viewhabits`: See a list of all tracked habits.
+    - `/clearhabits`: Clear all habits (with a confirmation prompt).
+
+- **Goal Setting and Tracking**:
+  Set personal goals, track progress, and stay motivated with visual progress updates.
+  - **Commands**:
+    - `/creategoal`: Create a new goal with a deadline.
+    - `/updategoal`: Update progress on a goal.
+    - `/viewgoal`: View current goals and progress.
+    - `/deletegoal`: Delete a specific goal (with confirmation).
+    - `/cleargoal`: Clear all completed goals.
+    - `/viewPoints`: Check how many reward points you've earned.
+
+- **Rewards for Engagement 🎉**:
+  Earn points for logging moods, habits, and goals to encourage consistency and celebrate achievements.
+
+- **Progress Visualization**:
+  Get visual summaries of your tracked data to identify patterns and trends over time.
+
+- **Custom Notifications**:
+  Set reminders for daily check-ins, medication, or other tasks to build positive routines.
+
+---
+
+### Why AuraBot?
+
+Many trackers don't address the unique needs of individuals with ADHD and anxiety, particularly on interactive platforms like Discord. AuraBot is designed with these users in mind, offering the following advantages:
+
+- **Accessibility**:
+  AuraBot is free, easy to use, and designed to be compatible with screen readers and text-to-speech tools.
+
+- **Privacy & Security 🔒**:
+  User data is securely encrypted. Private mood and habit logging ensure a safe space for self-reflection.
+
+- **Supportive Community**:
+  Discord's social features allow for optional interaction with supportive communities while keeping personal tracking private.
+
+---
+
+## Technical Specifications 🛠️
+
+- **Languages**:
+  AuraBot is built using Python.
+
+- **Platforms**:
+  It uses Discord's Developer Portal, with the code hosted on GitHub and the database managed with MongoDB.
+
+- **Accessibility Enhancements**:
+  AuraBot supports screen readers and plain language for ease of use. Features like text-to-speech ensure inclusivity.
+
+---
+
+### Current Development Status 📈
+
+- **Core Features**:
+  Mood, habit, and goal tracking are functional, along with commands for reminders and progress tracking.
+
+- **Notification System**:
+  Custom notifications for daily check-ins and reminders are being refined.
+
+- **Data Security**:
+  Robust encryption and secure data handling practices are in progress to protect user privacy.
+
+---
+
+## Project Timeline 📅
+
+- **Phase 1**:
+  Research and develop core functionalities.
+
+- **Phase 2**:
+  Test and refine logging and tracking features. Implement notification systems and conduct accessibility testing.
+
+- **Final Phase**:
+  Finalize features, polish the user experience, and prepare AuraBot for launch.
+
+---
+
+AuraBot is more than a mood tracker. It's a supportive companion designed to enhance emotional and mental well-being through structured tracking and the social flexibility of Discord.
